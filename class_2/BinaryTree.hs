@@ -1,3 +1,5 @@
+import Data.Maybe
+
 --export(
 --    BinaryTree
 --)
@@ -65,14 +67,57 @@ searchBinaryTree x (BinaryTreeNode a left right)
 
 binaryTreeToString :: (Eq a, Show a) => BinaryTree a -> String
 binaryTreeToString EmptyBinaryTree = ""
-binaryTreeToString (BinaryTreeNode a left right)
-    | subtreeExists = aAsString
-                ++ "(" ++ leftAsString
-                ++ ", " ++ rightAsString
-                ++ ")"
+binaryTreeToString tree@(BinaryTreeNode a left right)
+    | isLeave = aAsString
     | otherwise = aAsString
+                    ++ "(" ++ leftAsString
+                    ++ ", " ++ rightAsString
+                    ++ ")"
     where   leftAsString = binaryTreeToString left
             rightAsString = binaryTreeToString right
-            subtreeExists = left /= EmptyBinaryTree
-                || right /= EmptyBinaryTree
+            isLeave = binaryTreeIsLeave tree
             aAsString = show a
+
+binaryTreeIsBalanced :: BinaryTree a -> Bool
+binaryTreeIsBalanced tree = balanced
+    where (_, balanced) = binaryTreeBalanceData tree
+
+binaryTreeBalanceData :: BinaryTree a -> (Int, Bool)
+binaryTreeBalanceData EmptyBinaryTree = (0, True)
+binaryTreeBalanceData (BinaryTreeNode _ left right) =
+    let (leftHeight, _) = binaryTreeBalanceData left
+        (rightHeight, _) = binaryTreeBalanceData right
+        treeBalanced = abs (leftHeight - rightHeight) <= 1
+        treeHeight = max leftHeight rightHeight + 1
+    in (treeHeight, treeBalanced)
+
+binaryTreeLeaves :: (Eq a) => BinaryTree a -> [a]
+binaryTreeLeaves EmptyBinaryTree = []
+binaryTreeLeaves tree@(BinaryTreeNode a left right)
+    | isLeave = [a]
+    | otherwise = leftLeaves ++ rightLeaves
+    where   leftLeaves = binaryTreeLeaves left
+            rightLeaves = binaryTreeLeaves right
+            isLeave = binaryTreeIsLeave tree
+
+binaryTreeNodesNo :: BinaryTree a -> Int
+binaryTreeNodesNo EmptyBinaryTree = 0
+binaryTreeNodesNo (BinaryTreeNode _ left right)
+    = 1 + leftNodesNo + rightNodesNo
+    where   leftNodesNo = binaryTreeNodesNo left
+            rightNodesNo = binaryTreeNodesNo right
+
+binaryTreeSum :: (Num a) => BinaryTree a -> Maybe a
+binaryTreeSum EmptyBinaryTree = Nothing
+binaryTreeSum (BinaryTreeNode a left right)
+    = Just allPureValuesSum
+    where   leftSum = binaryTreeSum left
+            rightSum = binaryTreeSum right
+            allMaybeValues = [Just a,leftSum,rightSum]
+            allPureValues = catMaybes allMaybeValues
+            allPureValuesSum = sum allPureValues
+
+
+binaryTreeIsLeave :: (Eq a) => BinaryTree a -> Bool
+binaryTreeIsLeave (BinaryTreeNode _ left right)
+    = left == EmptyBinaryTree && right == EmptyBinaryTree
