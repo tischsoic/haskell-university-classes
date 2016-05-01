@@ -6,10 +6,13 @@ import Data.Maybe
 
 data BinaryTree a = EmptyBinaryTree
     | BinaryTreeNode a (BinaryTree a) (BinaryTree a)
-    deriving (Show, Read, Eq)
+    deriving (Read, Eq)
 
 data TraverseType = VLR | LVR | LRV | VRL | RVL | RLV
     deriving (Eq)
+
+data STree a = SEmpty | SLeaf a | SBranch a (STree a) (STree a)
+    deriving (Show)
 
 
 singletonBinaryTree :: a -> BinaryTree a
@@ -134,3 +137,88 @@ binaryTreeSum (BinaryTreeNode a left right)
 binaryTreeIsLeave :: (Eq a) => BinaryTree a -> Bool
 binaryTreeIsLeave (BinaryTreeNode _ left right)
     = left == EmptyBinaryTree && right == EmptyBinaryTree
+
+
+
+-- class 3rd
+
+binaryTreeGetLevel :: Int -> BinaryTree a -> [a]
+binaryTreeGetLevel _ EmptyBinaryTree = []
+binaryTreeGetLevel 0 (BinaryTreeNode a _ _) = [a]
+binaryTreeGetLevel level (BinaryTreeNode _ left right) =
+    let lowerLevel = level - 1
+        nodesFromLevelOnLeft =
+            binaryTreeGetLevel lowerLevel left
+        nodesFromLevelOnRight =
+            binaryTreeGetLevel lowerLevel right
+    in nodesFromLevelOnLeft ++ nodesFromLevelOnRight
+
+
+binaryTreeEnumerateLevel :: BinaryTree a -> BinaryTree (a, Int)
+binaryTreeEnumerateLevel = binaryTreeEnumerateLevelByBase 0
+
+binaryTreeEnumerateLevelByBase :: Int -> BinaryTree a -> BinaryTree (a, Int)
+binaryTreeEnumerateLevelByBase _ EmptyBinaryTree = EmptyBinaryTree
+binaryTreeEnumerateLevelByBase level (BinaryTreeNode a left right) =
+    let lowerLevel = level + 1
+        leftTreeWithEnumeretedLevels =
+            binaryTreeEnumerateLevelByBase lowerLevel left
+        rightTreeWithEnumeretedLevels =
+            binaryTreeEnumerateLevelByBase lowerLevel right
+    in  BinaryTreeNode
+            (a, level)
+            leftTreeWithEnumeretedLevels
+            rightTreeWithEnumeretedLevels
+
+
+binaryTreeDumpDOT :: (Show a) => BinaryTree a -> String
+binaryTreeDumpDOT tree =
+    let treeDump = binaryTreeDump tree
+    in  "{\n"
+        ++ treeDump ++
+    "\n}"
+
+binaryTreeGetNodeValue :: BinaryTree a -> Maybe a
+binaryTreeGetNodeValue EmptyBinaryTree = Nothing
+binaryTreeGetNodeValue (BinaryTreeNode x _ _) = Just x
+
+
+binaryTreeDumpOneEdge :: (Show a) => a -> Maybe a -> String
+binaryTreeDumpOneEdge _ Nothing = ""
+binaryTreeDumpOneEdge value (Just childNodeValue) =
+    show value ++ " -> " ++ show childNodeValue ++ "\n"
+
+
+binaryTreeDump :: (Show a) => BinaryTree a -> String
+binaryTreeDump EmptyBinaryTree = ""
+binaryTreeDump (BinaryTreeNode x left right) =
+    let leftValue = binaryTreeGetNodeValue left
+        rightValue = binaryTreeGetNodeValue right
+        leftEdgeDump = binaryTreeDumpOneEdge x leftValue
+        rightEdgeDump = binaryTreeDumpOneEdge x rightValue
+        leftDump = binaryTreeDump left
+        rightDump = binaryTreeDump right
+    in  leftEdgeDump ++ rightEdgeDump
+            ++ leftDump ++ rightDump
+
+
+-- binaryTreeMakeLayout :: (Show a) => BinaryTree a -> [(a, Int, Int)]
+-- binaryTreeMakeLayout
+
+
+
+
+-- class 4th
+
+binaryTreeToSTree :: BinaryTree a -> STree a
+binaryTreeToSTree EmptyBinaryTree = SEmpty
+binaryTreeToSTree (BinaryTreeNode a EmptyBinaryTree EmptyBinaryTree) =
+    SLeaf a
+binaryTreeToSTree bTree@(BinaryTreeNode a left right) =
+    let leftAsSTree = binaryTreeToSTree left
+        rightAsSTree = binaryTreeToSTree right
+    in  SBranch a leftAsSTree rightAsSTree
+
+
+instance (Show a, Eq a) => Show (BinaryTree a) where
+    show = binaryTreeToString
