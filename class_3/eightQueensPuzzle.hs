@@ -1,6 +1,34 @@
 import Data.Char
+import Data.List
 
 
+getNQueensSolutions :: Int -> [[Int]]
+getNQueensSolutions n =
+    [permutation
+        |   permutation <- permutations [1..n],
+            not $ queensCollideOnDiagonals permutation]
+
+
+queensCollideOnDiagonals :: [Int] -> Bool
+queensCollideOnDiagonals [_] = False
+queensCollideOnDiagonals positions =
+    let n = length positions
+        firstQueenPosition = head positions
+        restQueensPositions = tail positions
+        firstCollidesWithRest =
+            foldl
+            (\collide (y, x)
+                -> collide
+                    || (abs (x - 1) == abs (firstQueenPosition - y)))
+            False
+            $ zip restQueensPositions [2..]
+        restCollidesOnDiagonals =
+            queensCollideOnDiagonals restQueensPositions
+    in  firstCollidesWithRest || restCollidesOnDiagonals
+
+
+
+-- Bad solition:
 
 chessboardsWith8Queens :: [[(Char, Int)]]
 chessboardsWith8Queens =
