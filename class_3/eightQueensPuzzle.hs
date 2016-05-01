@@ -11,10 +11,8 @@ getNQueensSolutions n =
 
 queensCollideOnDiagonals :: [Int] -> Bool
 queensCollideOnDiagonals [_] = False
-queensCollideOnDiagonals positions =
+queensCollideOnDiagonals positions@(firstQueenPosition:restQueensPositions) =
     let n = length positions
-        firstQueenPosition = head positions
-        restQueensPositions = tail positions
         firstCollidesWithRest =
             foldl
             (\collide (y, x)
