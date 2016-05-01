@@ -9,6 +9,7 @@ data BinaryTree a = EmptyBinaryTree
     deriving (Show, Read, Eq)
 
 data TraverseType = VLR | LVR | LRV | VRL | RVL | RLV
+    deriving (Eq)
 
 
 singletonBinaryTree :: a -> BinaryTree a
@@ -56,6 +57,18 @@ canBeLeftNode EmptyBinaryTree _ = True
 canBeLeftNode (BinaryTreeNode x _ _) (BinaryTreeNode y _ _)
     | x < y = True
     | otherwise = False
+
+binaryTreeTraverse :: TraverseType -> BinaryTree a -> [a]
+binaryTreeTraverse _ EmptyBinaryTree = []
+binaryTreeTraverse traverseType (BinaryTreeNode x left right)
+    | traverseType == VLR = [x] ++ leftNodesList ++ rightNodesList
+    | traverseType == LVR = leftNodesList ++ [x] ++ rightNodesList
+    | traverseType == LRV = leftNodesList ++ rightNodesList ++ [x]
+    | traverseType == VRL = [x] ++ rightNodesList ++ leftNodesList
+    | traverseType == RVL = rightNodesList ++ [x] ++ leftNodesList
+    | traverseType == RLV = rightNodesList ++ leftNodesList ++ [x]
+    where   leftNodesList   = binaryTreeTraverse traverseType left
+            rightNodesList  = binaryTreeTraverse traverseType right
 
 searchBinaryTree :: (Eq a) => a -> BinaryTree a -> Bool
 searchBinaryTree _ EmptyBinaryTree = False
